@@ -1,23 +1,19 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   philo.h                                            :+:      :+:    :+:   */
+/*   utils.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: cmauley <cmauley@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/04/21 21:16:36 by cmauley           #+#    #+#             */
-/*   Updated: 2026/04/21 21:25:00 by cmauley          ###   ########.fr       */
+/*   Created: 2026/06/01 21:53:34 by cmauley           #+#    #+#             */
+/*   Updated: 2026/06/01 23:24:24 by cmauley          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PHILO_H
-# define PHILO_H
+#include "philo.h"
 
-# include <time.h>
-# include <pthread.h>
-# include <string.h>
-# include <stdio.h>
-# include <stdlib.h>
-# include <unistd.h>
-
-#endif
+int	print_error(const char *error)
+{
+	printf(RED"%s\n"RST, error);
+	return (1);
+}
