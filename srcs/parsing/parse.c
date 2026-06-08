@@ -51,9 +51,9 @@ static const char	*valid_input(const char *str)
 /**
  * @brief convertit un argument valide en nombre entier
  */
-static int	parse_number(const char *str, long *value)
+static int	parse_number(const char *str, int *value)
 {
-	long	num;
+	int		num;
 	int		i;
 
 	i = 0;

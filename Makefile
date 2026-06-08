@@ -40,10 +40,11 @@ PARSING_DIR		= srcs/parsing/
 UTILS_DIR		= srcs/utils/
 SRC_FILES		= main.c \
 				  init.c \
-				  simulation.c
+				  simulation.c \
+				  routine.c \
+				  mutex.c
 PARSING_FILES		= parse.c
-UTILS_FILES		= safe_fonctions.c \
-				  utils.c
+UTILS_FILES		= utils.c
 
 # Objects
 OBJS_DIR		= objs/

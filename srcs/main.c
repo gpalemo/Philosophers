@@ -6,7 +6,7 @@
 /*   By: cmauley <cmauley@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/01 15:28:52 by cmauley           #+#    #+#             */
-/*   Updated: 2026/06/08 21:01:13 by cmauley          ###   ########.fr       */
+/*   Updated: 2026/06/08 21:49:11 by cmauley          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ int	main(int ac, char **av)
 	}
 	else
 	{
-		print_error("Wrong input\n");
+		print_error("Error: Wrong input");
 		return (1);
 	}
 	return (0);

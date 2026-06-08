@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../../include/philo.h"
+#include "../include/philo.h"
 
 /**
  * @brief initialise un mutex et vérifie le résultat

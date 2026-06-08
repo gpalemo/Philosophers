@@ -6,14 +6,14 @@
 /*   By: cmauley <cmauley@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/01 21:53:34 by cmauley           #+#    #+#             */
-/*   Updated: 2026/06/08 21:19:03 by cmauley          ###   ########.fr       */
+/*   Updated: 2026/06/08 21:26:29 by cmauley          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/philo.h"
 
 /**
- * @brief Affiche un message d'erreur et retourne 1.
+ * @brief affiche un message d'erreur
  */
 int	print_error(const char *error)
 {
@@ -39,7 +39,7 @@ void	*safe_malloc(size_t bytes)
  */
 void	clean(t_table *table)
 {
-	long	i;
+	int	i;
 
 	i = 0;
 	while (i < table->forks_initialized)
@@ -54,7 +54,7 @@ void	clean(t_table *table)
 }
 
 /**
- * @brief Retourne le temps actuel en millisecondes.
+ * @brief retourne le temps actuel en ms
  */
 long	get_time(void)
 {

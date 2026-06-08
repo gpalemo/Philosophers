@@ -6,7 +6,7 @@
 /*   By: cmauley <cmauley@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/21 21:16:36 by cmauley           #+#    #+#             */
-/*   Updated: 2026/06/08 21:13:24 by cmauley          ###   ########.fr       */
+/*   Updated: 2026/06/08 21:45:19 by cmauley          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,11 +21,6 @@
 # include <stdlib.h> // malloc, free
 # include <unistd.h> // write, usleep
 # include <limits.h> // INT MIN, INT MAX
-
-
-/*
-*/
-
 
 /*
 ** ANSI Escape Sequences pour les textes en couleur
@@ -61,7 +56,7 @@ typedef struct	s_fork
 typedef struct	s_philo
 {
 	int			id;
-	long		meals_counter;
+	int			meals_counter;
 	int			full;
 	long		last_meal_time; // temps passé depuis le dernier repas
 	t_fork		*left_fork;
@@ -72,17 +67,17 @@ typedef struct	s_philo
 
 struct	s_table
 {
-	long	philo_nbr;
-	long	time_to_die;
-	long	time_to_sleep;
-	long	time_to_eat;
-	long	nbr_limit_meals;
+	int		philo_nbr;
+	int		time_to_die;
+	int		time_to_sleep;
+	int		time_to_eat;
+	int		nbr_limit_meals;
 	long	start_simulation; // début des timestamps
 	int		end_simulation; // un philo meurs ou tout les philos sont full
 	t_philo	*philos; // tab de philos
 	t_fork	*forks; // tab de forks
 	t_mtx	print_mutex;
-	long	forks_initialized;
+	int		forks_initialized;
 	int		print_mutex_initialized;
 };
 
@@ -104,5 +99,7 @@ int		data_init(t_table *table);
 
 // simulation
 int		dinner_start(t_table *table);
+int		print_status(t_philo *philo, char *status);
+void	*philo_routine(void *data);
 
 #endif
