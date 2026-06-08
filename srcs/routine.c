@@ -6,12 +6,15 @@
 /*   By: cmauley <cmauley@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 00:00:00 by cmauley           #+#    #+#             */
-/*   Updated: 2026/06/09 00:00:00 by cmauley          ###   ########.fr       */
+/*   Updated: 2026/06/09 00:11:03 by cmauley          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/philo.h"
 
+/**
+ * @brief affiche le statut d'un philo avec le temps écoulé
+ */
 int	print_status(t_philo *philo, char *status)
 {
 	long	time_spend;
@@ -24,14 +27,30 @@ int	print_status(t_philo *philo, char *status)
 	return (0);
 }
 
-static int	take_one_fork(t_philo *philo)
+/**
+ * @brief fait prendre puis relâcher une fourchette au philo
+ */
+static int	take_forks(t_philo *philo)
 {
-	int	status;
+	t_fork	*first;
+	t_fork	*second;
+	int		status;
 
-	if (safe_mutex_lock(&philo->left_fork->fork))
+	if (philo->id % 2 == 0)
+	{
+		first = philo->right_fork;
+		second = philo->left_fork;
+	}
+	else
+	{
+		first = philo->left_fork;
+		second = philo->right_fork;
+	}
+	(void)second;
+	if (safe_mutex_lock(&first->fork))
 		return (1);
 	status = print_status(philo, "has taken a fork");
-	safe_mutex_unlock(&philo->left_fork->fork);
+	safe_mutex_unlock(&first->fork);
 	return (status);
 }
 
@@ -44,7 +63,7 @@ void	*philo_routine(void *data)
 	t_philo	*philo;
 
 	philo = (t_philo *)data;
-	if (take_one_fork(philo))
+	if (take_forks(philo))
 		return (NULL);
 	return (NULL);
 }
