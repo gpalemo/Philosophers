@@ -6,7 +6,7 @@
 #    By: cmauley <cmauley@student.42lausanne.ch>    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/04/21 21:16:01 by cmauley           #+#    #+#              #
-#    Updated: 2026/06/02 00:48:41 by cmauley          ###   ########.fr        #
+#    Updated: 2026/06/08 19:17:26 by cmauley          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,25 +30,27 @@ RM				= rm -rf
 LINKER  	    = -lpthread
 
 # Includes
-INCLUDES_DIR 	= includes
+INCLUDES_DIR 	= include
 INCLUDES_FLAG 	= -I$(INCLUDES_DIR)
 INCLUDES		= $(wildcard $(INCLUDES_DIR)/*.h)
 
 # Sources
 SRCS_DIR		= srcs/
 PARSING_DIR		= srcs/parsing/
+UTILS_DIR		= srcs/utils/
 SRC_FILES		= main.c \
 				  init.c \
-				  simulation.c \
-				  str_utils.c
-PARSING_FILES		= parse.c \
+				  simulation.c
+PARSING_FILES		= parse.c
+UTILS_FILES		= safe_fonctions.c \
 				  utils.c
 
 # Objects
 OBJS_DIR		= objs/
 OBJ_FILES		= $(SRC_FILES:.c=.o)
 PARSING_OBJ		= $(PARSING_FILES:.c=.o)
-OBJS			= $(addprefix $(OBJS_DIR), $(OBJ_FILES)) $(addprefix $(OBJS_DIR)parsing/, $(PARSING_OBJ))
+UTILS_OBJ		= $(UTILS_FILES:.c=.o)
+OBJS			= $(addprefix $(OBJS_DIR), $(OBJ_FILES)) $(addprefix $(OBJS_DIR)parsing/, $(PARSING_OBJ)) $(addprefix $(OBJS_DIR)utils/, $(UTILS_OBJ))
 
 
 all : $(OBJS_DIR) $(NAME)
@@ -56,6 +58,7 @@ all : $(OBJS_DIR) $(NAME)
 $(OBJS_DIR) :
 	@$(MKDIR) $(OBJS_DIR)
 	@$(MKDIR) $(OBJS_DIR)parsing/
+	@$(MKDIR) $(OBJS_DIR)utils/
 
 $(NAME) : $(OBJS) Makefile
 	@echo $(GREEN) " - Compiling $(NAME)..." $(RESET)
@@ -66,7 +69,10 @@ $(OBJS_DIR)%.o : $(SRCS_DIR)%.c $(INCLUDES)
 	@$(CC) $(CFLAGS) $(INCLUDES_FLAG) -c $< -o $@
 
 $(OBJS_DIR)parsing/%.o : $(PARSING_DIR)%.c $(INCLUDES)
-	@$(CC) $(CFLAGS) $(INCLUDES_FLAG) -c $< -o $@	
+	@$(CC) $(CFLAGS) $(INCLUDES_FLAG) -c $< -o $@
+
+$(OBJS_DIR)utils/%.o : $(UTILS_DIR)%.c $(INCLUDES)
+	@$(CC) $(CFLAGS) $(INCLUDES_FLAG) -c $< -o $@
 
 clean :
 	@$(RM) $(OBJS_DIR)
@@ -74,7 +80,7 @@ clean :
 
 fclean : clean
 	@$(RM) $(NAME)
-	@echo $(RED) " - Full Cleaned!" $(RESET)
+	@echo $(RED) " - Fully Cleaned!" $(RESET)
 
 re: fclean all
 

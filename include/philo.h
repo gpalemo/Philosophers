@@ -6,7 +6,7 @@
 /*   By: cmauley <cmauley@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/21 21:16:36 by cmauley           #+#    #+#             */
-/*   Updated: 2026/06/02 00:48:41 by cmauley          ###   ########.fr       */
+/*   Updated: 2026/06/08 21:13:24 by cmauley          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,18 @@
 # define PHILO_H
 
 # include <time.h> // gettimeofday
+# include <sys/time.h> // struct timeval
 # include <pthread.h> // mutex : init, destroy, lock, unlock | threads : create, join, detach
 # include <string.h>
-# include <stdbool.h>
 # include <stdio.h> // printf
 # include <stdlib.h> // malloc, free
 # include <unistd.h> // write, usleep
 # include <limits.h> // INT MIN, INT MAX
+
+
+/*
+*/
+
 
 /*
 ** ANSI Escape Sequences pour les textes en couleur
@@ -57,7 +62,7 @@ typedef struct	s_philo
 {
 	int			id;
 	long		meals_counter;
-	bool		full;
+	int			full;
 	long		last_meal_time; // temps passé depuis le dernier repas
 	t_fork		*left_fork;
 	t_fork		*right_fork;
@@ -73,22 +78,31 @@ struct	s_table
 	long	time_to_eat;
 	long	nbr_limit_meals;
 	long	start_simulation; // début des timestamps
-	bool	end_simulation; // un philo meurs ou tout les philos sont full
+	int		end_simulation; // un philo meurs ou tout les philos sont full
 	t_philo	*philos; // tab de philos
 	t_fork	*forks; // tab de forks
+	t_mtx	print_mutex;
+	long	forks_initialized;
+	int		print_mutex_initialized;
 };
 
 // utils
 int		print_error(const char *error);
-
-// parsing
-void	parse_input(t_table *table, char **av);
-
-// init
-void	data_init(t_table *table);
+void	*safe_malloc(size_t bytes);
+int		safe_mutex_init(t_mtx *mutex);
+int		safe_mutex_destroy(t_mtx *mutex);
+int		safe_mutex_lock(t_mtx *mutex);
+int		safe_mutex_unlock(t_mtx *mutex);
+long	get_time(void);
 void	clean(t_table *table);
 
+// parsing
+int	parse_input(t_table *table, char **av);
+
+// init
+int		data_init(t_table *table);
+
 // simulation
-void	dinner_start(t_table *table);
+int		dinner_start(t_table *table);
 
 #endif

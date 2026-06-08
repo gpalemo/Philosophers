@@ -208,7 +208,27 @@ Astuce : une fonction utilitaire type `current_time_ms()` simplifie beaucoup le 
 
 1. **`number_of_philosophers = 1`**
 2. Valeurs invalides (<= 0, non numériques, overflow)
-3. Timings très petits (sensible au scheduler)
+3. Timingsau format exact
+- [ ] Logs sérialisés (pas de chevauchement)
+- [ ] Mort détectée et affichée rapidement
+- [ ] Pas de data races
+- [ ] Arrêt propre + destruction des mutex
+- [ ] Makefile avec `NAME`, `all`, `clean`, `fclean`, `re`
+
+---
+
+## 8) Plan d'attaque concret
+
+1. Écrire les fonctions de temps + affichage protégé par mutex
+2. Parsing robuste des arguments
+3. Initialisation complète des structures/mutex
+4. Routine philosophe minimale (sans optimisation)
+5. Monitoring de mort fiable
+6. Condition d'arrêt sur quota de repas
+7. Gestion des cas limites + nettoyage complet
+8. Tests intensifs de timings
+
+--- très petits (sensible au scheduler)
 4. Éviter d'afficher des actions après une mort
 5. Nettoyage même en cas d'erreur partielle d'initialisation
 

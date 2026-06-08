@@ -6,12 +6,15 @@
 /*   By: cmauley <cmauley@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/01 15:28:52 by cmauley           #+#    #+#             */
-/*   Updated: 2026/06/01 23:27:59 by cmauley          ###   ########.fr       */
+/*   Updated: 2026/06/08 21:01:13 by cmauley          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo.h"
+#include "../include/philo.h"
 
+/**
+ * @brief vérifie les arguments puis lance et nettoie la simulation
+ */
 int	main(int ac, char **av)
 {
 	t_table	table;
@@ -20,13 +23,22 @@ int	main(int ac, char **av)
 	{
 		// correct input
 		//1) errors checking, filling table table
-		parse_input(&table, av);
+		if (parse_input(&table, av) != 0)
+			return (1);
 
 		//2) creating the actual thing
-		data_init(&table);
+		if (data_init(&table) != 0)
+		{
+			clean(&table);
+			return (1);
+		}
 
 		//3)
-		dinner_start(&table);
+		if (dinner_start(&table) != 0)
+		{
+			clean(&table);
+			return (1);
+		}
 
 		//4) No leaks -> philos full | 1 philo died 💀
 		clean(&table);
