@@ -6,7 +6,7 @@
 /*   By: cmauley <cmauley@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/21 21:16:36 by cmauley           #+#    #+#             */
-/*   Updated: 2026/06/08 21:45:19 by cmauley          ###   ########.fr       */
+/*   Updated: 2026/06/09 21:48:39 by cmauley          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,7 @@ typedef struct	s_philo
 	t_table		*table;
 }						t_philo;
 
+// data
 struct	s_table
 {
 	int		philo_nbr;
@@ -77,8 +78,10 @@ struct	s_table
 	t_philo	*philos; // tab de philos
 	t_fork	*forks; // tab de forks
 	t_mtx	print_mutex;
+	t_mtx	data_mutex;
 	int		forks_initialized;
 	int		print_mutex_initialized;
+	int		data_mutex_initialized;
 };
 
 // utils
@@ -101,5 +104,11 @@ int		data_init(t_table *table);
 int		dinner_start(t_table *table);
 int		print_status(t_philo *philo, char *status);
 void	*philo_routine(void *data);
+
+// actions
+int		take_forks(t_philo *philo);
+void	drop_forks(t_philo *philo);
+int		eat(t_philo *philo);
+int		sleep_and_think(t_philo *philo);
 
 #endif

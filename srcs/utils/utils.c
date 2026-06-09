@@ -47,6 +47,8 @@ void	clean(t_table *table)
 		safe_mutex_destroy(&table->forks[i].fork);
 		i++;
 	}
+	if (table->data_mutex_initialized)
+		safe_mutex_destroy(&table->data_mutex);
 	if (table->print_mutex_initialized)
 		safe_mutex_destroy(&table->print_mutex);
 	free(table->forks);

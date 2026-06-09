@@ -6,7 +6,7 @@
 /*   By: cmauley <cmauley@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 00:00:00 by cmauley           #+#    #+#             */
-/*   Updated: 2026/06/09 00:11:03 by cmauley          ###   ########.fr       */
+/*   Updated: 2026/06/09 21:41:08 by cmauley          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,30 +28,15 @@ int	print_status(t_philo *philo, char *status)
 }
 
 /**
- * @brief fait prendre puis relâcher une fourchette au philo
+ * @brief vérifie si le philo doit continuer sa routine
  */
-static int	take_forks(t_philo *philo)
+static int	must_continue(t_philo *philo)
 {
-	t_fork	*first;
-	t_fork	*second;
-	int		status;
-
-	if (philo->id % 2 == 0)
-	{
-		first = philo->right_fork;
-		second = philo->left_fork;
-	}
-	else
-	{
-		first = philo->left_fork;
-		second = philo->right_fork;
-	}
-	(void)second;
-	if (safe_mutex_lock(&first->fork))
+	if (philo->table->nbr_limit_meals == -1)
 		return (1);
-	status = print_status(philo, "has taken a fork");
-	safe_mutex_unlock(&first->fork);
-	return (status);
+	if (philo->meals_counter < philo->table->nbr_limit_meals)
+		return (1);
+	return (0);
 }
 
 /**
@@ -61,9 +46,22 @@ static int	take_forks(t_philo *philo)
 void	*philo_routine(void *data)
 {
 	t_philo	*philo;
+	int		status;
 
 	philo = (t_philo *)data;
-	if (take_forks(philo))
+	if (philo->table->philo_nbr == 1)
+	{
+		take_forks(philo);
 		return (NULL);
+	}
+	while (must_continue(philo))
+	{
+		if (take_forks(philo))
+			return (NULL);
+		status = eat(philo);
+		drop_forks(philo);
+		if (status || sleep_and_think(philo))
+			return (NULL);
+	}
 	return (NULL);
 }

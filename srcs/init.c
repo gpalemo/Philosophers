@@ -6,7 +6,7 @@
 /*   By: cmauley <cmauley@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/01 15:28:52 by cmauley           #+#    #+#             */
-/*   Updated: 2026/06/08 21:22:09 by cmauley          ###   ########.fr       */
+/*   Updated: 2026/06/09 21:51:03 by cmauley          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ static void	set_table_to_zero(t_table *table)
 	table->forks = NULL;
 	table->forks_initialized = 0;
 	table->print_mutex_initialized = 0;
+	table->data_mutex_initialized = 0;
 }
 
 /**
@@ -79,6 +80,9 @@ int	data_init(t_table *table)
 	if (safe_mutex_init(&table->print_mutex))
 		return (1);
 	table->print_mutex_initialized = 1;
+	if (safe_mutex_init(&table->data_mutex))
+		return (1);
+	table->data_mutex_initialized = 1;
 	if (init_forks(table))
 		return (1);
 	init_philos(table);
