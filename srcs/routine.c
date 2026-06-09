@@ -6,7 +6,7 @@
 /*   By: cmauley <cmauley@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 00:00:00 by cmauley           #+#    #+#             */
-/*   Updated: 2026/06/09 21:41:08 by cmauley          ###   ########.fr       */
+/*   Updated: 2026/06/09 22:12:02 by cmauley          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,11 +32,20 @@ int	print_status(t_philo *philo, char *status)
  */
 static int	must_continue(t_philo *philo)
 {
-	if (philo->table->nbr_limit_meals == -1)
-		return (1);
-	if (philo->meals_counter < philo->table->nbr_limit_meals)
-		return (1);
-	return (0);
+	int	continue_routine;
+
+	if (safe_mutex_lock(&philo->table->data_mutex))
+		return (0);
+	if (philo->table->end_simulation == 1)
+		continue_routine = 0;
+	else if (philo->table->nbr_limit_meals == -1)
+		continue_routine = 1;
+	else if (philo->meals_counter < philo->table->nbr_limit_meals)
+		continue_routine = 1;
+	else
+		continue_routine = 0;
+	safe_mutex_unlock(&philo->table->data_mutex);
+	return (continue_routine);
 }
 
 /**
