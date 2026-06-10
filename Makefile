@@ -42,7 +42,8 @@ SRC_FILES		= main.c \
 				  init.c \
 				  simulation.c \
 				  routine.c \
-				  actions.c
+				  actions.c \
+				  monitor.c
 PARSING_FILES		= parse.c
 UTILS_FILES		= utils.c \
 				  mutex.c

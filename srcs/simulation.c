@@ -6,7 +6,7 @@
 /*   By: cmauley <cmauley@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/01 15:28:52 by cmauley           #+#    #+#             */
-/*   Updated: 2026/06/08 23:58:41 by cmauley          ###   ########.fr       */
+/*   Updated: 2026/06/11 00:00:23 by cmauley          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,11 +68,19 @@ static int	join_threads(t_table *table, int created)
 }
 
 /**
- * @brief démarre les threads puis attend leur fin
+ * @brief démarre les threads puis attend leur fin :
  *
  * définir l’heure de départ,
+ *
  * créer les threads,
- * attendre leur fin,
+ *
+ * le monitor detecte une mort et
+ * place "end_simulation" a 1
+ *
+ * les routines voient end_simulation et terminent
+ *
+ * join_threads peut terminer
+ *
  * retourner si une erreur s’est produite
  */
 int	dinner_start(t_table *table)
@@ -82,6 +90,7 @@ int	dinner_start(t_table *table)
 
 	set_start_time(table);
 	status = create_threads(table, &created);
+	monitor(table);
 	if (join_threads(table, created))
 		status = 1;
 	return (status);

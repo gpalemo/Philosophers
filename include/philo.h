@@ -104,6 +104,7 @@ int		data_init(t_table *table);
 int		dinner_start(t_table *table);
 int		print_status(t_philo *philo, char *status);
 void	*philo_routine(void *data);
+int		monitor(t_table *table);
 
 // actions
 int		take_forks(t_philo *philo);

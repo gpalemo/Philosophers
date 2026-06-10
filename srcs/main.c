@@ -6,7 +6,7 @@
 /*   By: cmauley <cmauley@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/01 15:28:52 by cmauley           #+#    #+#             */
-/*   Updated: 2026/06/08 21:49:11 by cmauley          ###   ########.fr       */
+/*   Updated: 2026/06/10 23:07:27 by cmauley          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,26 +21,18 @@ int	main(int ac, char **av)
 
 	if (ac == 5 || ac == 6)
 	{
-		// correct input
-		//1) errors checking, filling table table
 		if (parse_input(&table, av) != 0)
 			return (1);
-
-		//2) creating the actual thing
 		if (data_init(&table) != 0)
 		{
 			clean(&table);
 			return (1);
 		}
-
-		//3)
 		if (dinner_start(&table) != 0)
 		{
 			clean(&table);
 			return (1);
 		}
-
-		//4) No leaks -> philos full | 1 philo died 💀
 		clean(&table);
 	}
 	else
