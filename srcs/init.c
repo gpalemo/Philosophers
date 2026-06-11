@@ -6,14 +6,14 @@
 /*   By: cmauley <cmauley@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/01 15:28:52 by cmauley           #+#    #+#             */
-/*   Updated: 2026/06/11 03:36:33 by cmauley          ###   ########.fr       */
+/*   Updated: 2026/06/11 03:54:00 by cmauley          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/philo.h"
 
 /**
- * @brief met les données d'initialisation de la table à zéro
+ * @brief initialise les valeurs nécessaires au lancement et au nettoyage
  */
 static void	set_table_to_zero(t_table *table)
 {
@@ -27,7 +27,7 @@ static void	set_table_to_zero(t_table *table)
 }
 
 /**
- * @brief initialise chaque fourchette
+ * @brief attribue un identifiant et initialise le mutex de chaque fourchette
  */
 static int	init_forks(t_table *table)
 {
@@ -68,7 +68,7 @@ static void	init_philos(t_table *table)
 }
 
 /**
- * @brief alloue et initialise la table, les fourchettes et les philo
+ * @brief alloue et initialise les philosophes, fourchettes et mutex
  */
 int	data_init(t_table *table)
 {

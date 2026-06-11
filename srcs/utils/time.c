@@ -13,7 +13,7 @@
 #include "../../include/philo.h"
 
 /**
- * @brief attend une durée tout en vérifiant l'arrêt de la simulation
+ * @brief attend une durée ou retourne plus tôt si la simulation s'arrête
  */
 int	safe_sleep(long duration, t_table *table)
 {

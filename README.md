@@ -1,262 +1,503 @@
+*This project has been created as part of the 42 curriculum by cmauley.*
+
 # Philosophers
 
-## 1) Le projet en une phrase
+<p align="center">
+  <img src="https://img.shields.io/badge/Language-C-00599C?style=for-the-badge&logo=c"
+       alt="C language">
+  <img src="https://img.shields.io/badge/School-42-000000?style=for-the-badge&logo=42"
+       alt="42 School">
+  <img src="https://img.shields.io/badge/Threads-pthreads-8A2BE2?style=for-the-badge"
+       alt="pthreads">
+  <img src="https://img.shields.io/badge/Status-Completed-00C853?style=for-the-badge"
+       alt="Completed project">
+</p>
+
+<p align="center">
+  <img src="image/dining-philosophers.webp"
+       alt="Dining philosophers problem diagram"
+       width="650">
+</p>
+
+<p align="center">
+  Image source:
+  <a href="https://www.naukri.com/code360/library/dining-philosopher-problem-using-semaphores-2383">
+    Code360 - Dining Philosopher Problem Using Semaphores
+  </a>
+</p>
+
+| Project status | Details |
+|---|---|
+| Completed part | Mandatory |
+| Memory leaks | Tested with Valgrind |
+| Data races | Tested with Helgrind |
+
+## Table of Contents
+
+- [Description](#description)
+- [How It Works](#how-it-works)
+- [Understanding Threads](#understanding-threads)
+- [Understanding Mutexes](#understanding-mutexes)
+- [Understanding Data Races](#understanding-data-races)
+- [Understanding the Monitor](#understanding-the-monitor)
+- [Common Mistakes and Important Points](#common-mistakes-and-important-points)
+- [Instructions](#instructions)
+- [Arguments](#arguments)
+- [Examples](#examples)
+- [Useful Tests](#useful-tests)
+- [Resources](#resources)
+- [Use of AI](#use-of-ai)
+
+## Description
+
+Philosophers is a 42 School project designed to introduce threads, mutexes,
+and the challenges of concurrent programming.
+
+The program simulates several philosophers sitting around a table. Each
+philosopher alternates between three actions: eating, sleeping, and thinking.
+To eat, a philosopher must obtain the two forks placed next to them.
+
+The main goal is to avoid deadlocks, data races, and starvation while quickly
+detecting the possible death of a philosopher.
+
+## How It Works
+
+- Each philosopher is represented by a thread.
+- Each fork is protected by a mutex.
+- A mutex protects shared data.
+- A mutex prevents displayed messages from overlapping.
+- Even- and odd-numbered philosophers do not pick up their forks in the same
+  order, which prevents deadlocks.
+- A monitor checks for philosopher deaths and the optional meal quota.
+- The simulation stops when a philosopher dies or when every philosopher has
+  reached the required meal quota.
+
+## Understanding Threads
+
+### What is a thread?
+
+A traditional program usually executes its instructions one after another. A
+**thread** is one execution path inside a program. Multiple threads therefore
+allow several tasks to run at the same time.
+
+In this project, each philosopher must live independently from the others:
+
+```text
+Philosopher 1 thread: eat -> sleep -> think -> ...
+Philosopher 2 thread: eat -> sleep -> think -> ...
+Philosopher 3 thread: eat -> sleep -> think -> ...
+```
+
+All these threads belong to the same program and share its memory. They can
+therefore access the same table, the same forks, and the same simulation state.
+
+> **Simple analogy:** the program is a kitchen, and the threads are several
+> cooks working in that kitchen at the same time. They share the equipment,
+> but each cook follows their own sequence of actions.
+
+### How are threads created here?
+
+The [`create_threads`](srcs/simulation.c#L34) function calls `pthread_create`
+once for each philosopher:
+
+```c
+pthread_create(&table->philos[i].thread_id, NULL,
+	philo_routine, &table->philos[i]);
+```
+
+The four important arguments are:
+
+| Argument | Purpose |
+|---|---|
+| `&thread_id` | receives the identifier of the new thread |
+| `NULL` | uses the default thread attributes |
+| `philo_routine` | function executed by the thread |
+| `&table->philos[i]` | philosopher passed to that function |
 
-Faire un programme qui simule des philosophes autour d'une table : ils **mangent, dorment, pensent** en boucle, partagent des fourchettes, sans bugs de concurrence, avec des messages propres, et une détection correcte quand l'un meurt.
+Each thread therefore starts inside
+[`philo_routine`](srcs/routine.c#L41). The routine retrieves its philosopher,
+possibly waits for a short time, and then repeats:
 
----
+```text
+take forks -> eat -> put down forks -> sleep -> think
+```
 
-## 2) Rappel des règles du sujet
+### Why use `pthread_join`?
 
-### Entrée du programme
+The main thread starts the philosophers, but it must also wait for them to
+finish before destroying mutexes and freeing memory.
 
-Le programme reçoit :
+[`join_threads`](srcs/simulation.c#L54) calls `pthread_join` for every created
+thread. Without this wait, `main` could clean the table while philosophers are
+still using it.
 
-`number_of_philosophers time_to_die time_to_eat time_to_sleep [number_of_times_each_philosopher_must_eat]`
+```text
+create threads
+      |
+      v
+   monitor
+      |
+      v
+stop simulation
+      |
+      v
+pthread_join every thread
+      |
+      v
+clean allocated memory
+```
 
-- `number_of_philosophers` : nombre de philosophes (et donc de fourchettes)
-- `time_to_die` (ms) : temps maximum sans commencer un repas avant de mourir
-- `time_to_eat` (ms) : durée d'un repas
-- `time_to_sleep` (ms) : durée du sommeil
-- `number_of_times_each_philosopher_must_eat` (optionnel) : si tout le monde a mangé au moins ce nombre de fois, on arrête la simulation
+## Understanding Mutexes
 
-### Comportement attendu
+### What is a mutex?
 
-- Chaque philosophe est un **thread**.
-- Il y a une fourchette entre chaque paire de philosophes.
-- Pour manger, un philosophe doit prendre **2 fourchettes** (gauche + droite).
-- S'il n'y a qu'1 philosophe, il n'a qu'une seule fourchette : il ne peut donc jamais vraiment manger, et il mourra après `time_to_die`.
-- La simulation s'arrête :
-  - à la mort d'un philosophe, ou
-  - si l'argument optionnel est fourni et que tous les philosophes ont atteint le quota.
+A **mutex** is a lock that protects a shared resource. Only one thread can own
+that lock at a time.
 
-### Logs obligatoires
+```text
+Thread A locks the mutex
+Thread B wants the same mutex and must wait
+Thread A unlocks the mutex
+Thread B can finally continue
+```
 
-Format exact :
+In this project, mutex calls are grouped in
+[`mutex.c`](srcs/utils/mutex.c) so errors from `pthread_mutex_init`,
+`pthread_mutex_lock`, `pthread_mutex_unlock`, and `pthread_mutex_destroy` can
+be checked easily.
 
-- `timestamp_in_ms X has taken a fork`
-- `timestamp_in_ms X is eating`
-- `timestamp_in_ms X is sleeping`
-- `timestamp_in_ms X is thinking`
-- `timestamp_in_ms X died`
+### Mutexes used in this project
 
-Contraintes :
+| Mutex | What it protects | Why |
+|---|---|---|
+| Each fork's mutex | one specific fork | prevents two neighbors from taking the same fork |
+| `data_mutex` | `last_meal_time`, `meals_counter`, `end_simulation` | prevents concurrent reads and writes |
+| `print_mutex` | status output | prevents messages from overlapping |
 
-- Les messages ne doivent pas se mélanger entre eux (affichage protégé).
-- Le message de mort doit être affiché très rapidement (<= 10 ms après la mort).
-- **Aucune data race**.
+Fork mutexes are initialized in [`init_forks`](srcs/init.c#L32). When a
+philosopher eats, [`take_forks`](srcs/actions.c#L88) locks the forks, and
+[`drop_forks`](srcs/actions.c#L18) unlocks them afterward.
 
-### Fonctions autorisées
+### Why change the fork pickup order?
 
-`memset, printf, malloc, free, write, usleep, gettimeofday, pthread_create, pthread_detach, pthread_join, pthread_mutex_init, pthread_mutex_destroy, pthread_mutex_lock, pthread_mutex_unlock`
+If every philosopher first picks up their left fork, each philosopher may end
+up holding one fork while waiting forever for the second one. This is called a
+**deadlock**.
 
----
+```text
+Philo 1 owns left and waits for right
+Philo 2 owns left and waits for right
+Philo 3 owns left and waits for right
+=> nobody can make progress
+```
 
-## 3) Concepts théoriques indispensables
+[`choose_forks`](srcs/actions.c#L71) avoids this situation by giving even- and
+odd-numbered philosophers a different order:
 
-## 3.1 Thread (pthread)
+- even-numbered philosophers take the right fork first;
+- odd-numbered philosophers take the left fork first.
 
-Un **thread**, c'est comme une petite "ligne de travail" qui tourne en même temps que d'autres dans le même programme.
+The small initial delay for even-numbered philosophers in
+[`philo_routine`](srcs/routine.c#L52) also reduces conflicts when the
+simulation starts.
 
-- Tous les threads partagent la même mémoire du programme.
-- Chaque thread a quand même sa propre pile (ses variables locales d'appels de fonctions).
+> **Essential rule:** every successful `lock` must have a matching `unlock`,
+> including when an error occurs or the simulation stops.
 
-Dans `philo`, chaque philosophe est un thread qui exécute une routine en boucle :
+## Understanding Data Races
 
-1. Prendre les fourchettes
-2. Manger
-3. Dormir
-4. Penser
+### What is a data race?
 
-### `pthread_create`
+A **data race** happens when multiple threads access the same data at the same
+time, at least one thread modifies it, and no mutex protects these accesses.
 
-Crée un thread :
+Dangerous example:
 
-- on lui donne la fonction à exécuter
-- on lui passe souvent un pointeur vers la structure du philosophe
+```c
+philo->meals_counter++;
+```
 
-### `pthread_join` / `pthread_detach`
+While this value is being modified, the monitor could read `meals_counter`.
+The result becomes unpredictable: the monitor may read an old or inconsistent
+value, or the program may trigger undefined behavior.
 
-- `join` : on attend qu'un thread se termine
-- `detach` : on ne l'attend pas, le système nettoie ses ressources à la fin
+### How are data races prevented here?
 
-Pour `philo`, une approche classique est de créer tous les threads puis de les `join` proprement en fin de simulation.
+Shared data that may change during the simulation is always read and modified
+while holding `data_mutex`.
 
----
+In [`eat`](srcs/actions.c#L33), the philosopher protects the update of their
+last meal time:
 
-## 3.2 Mutex
+```c
+safe_mutex_lock(&philo->table->data_mutex);
+philo->last_meal_time = get_time();
+safe_mutex_unlock(&philo->table->data_mutex);
+```
 
-Un **mutex**, c'est un cadenas.
-Il sert à empêcher deux threads de toucher en même temps à la même ressource.
+In [`is_dead`](srcs/monitor.c#L18), the monitor uses the **same mutex** before
+reading that value. Protecting only the write or only the read is not enough:
+every related access must follow the same rule.
 
-- `pthread_mutex_lock` : je prends le cadenas
-- `pthread_mutex_unlock` : je rends le cadenas
+The same principle is used for:
 
-Dans `philo`, on utilise en général :
+- `meals_counter`, modified in `eat` and read by the monitor;
+- `end_simulation`, modified when stopping and read by every thread;
+- output, protected by `print_mutex` in
+  [`print_status`](srcs/routine.c#L18) and
+  [`print_death`](srcs/utils/utils.c#L27).
 
-1. **1 mutex par fourchette** (ressource partagée)
-2. **1 mutex d'affichage** (éviter mélange des logs)
-3. éventuellement un mutex pour protéger des champs partagés (`stop`, `last_meal`, compteurs...)
+### How can data races be detected?
 
----
+Helgrind observes memory accesses performed by threads:
 
-## 3.3 Data race
+```bash
+valgrind --tool=helgrind ./philo 5 800 200 200 3
+```
 
-Une **data race**, c'est quand plusieurs threads lisent/écrivent la même donnée en même temps sans protection.
-Résultat : comportement imprévisible.
+The expected result is:
 
-Exemples typiques dans `philo` :
+```text
+ERROR SUMMARY: 0 errors
+```
 
-- `last_meal` lu par le thread de monitoring et écrit par le philosophe
-- un flag global de fin (`simulation_stopped`) lu/écrit par plusieurs threads
-- compteur `meals_eaten`
+Helgrind greatly slows the program down. Timings observed under Helgrind should
+therefore not be used to judge the accuracy of death detection.
 
-Solution : protéger tous ces accès par mutex (ou stratégie de propriété stricte + synchro explicite).
+## Understanding the Monitor
 
----
+The **monitor** runs in the main thread while the philosophers execute their
+routines. Its role is to observe the simulation without acting as a
+philosopher.
 
-## 3.4 Deadlock
+The [`monitor`](srcs/monitor.c#L85) function repeatedly performs two checks:
 
-Un **deadlock**, c'est un blocage total : chacun attend l'autre, et plus rien n'avance.
+1. Check whether every philosopher has reached the optional meal quota.
+2. Check whether a philosopher has exceeded `time_to_die`.
 
-Exemple classique :
+```text
+                 +-------------------------+
+                 | have all quotas been met? |
+                 +------------+------------+
+                              |
+                    yes ------+------ no
+                     |                 |
+              stop simulation         v
+                                  check deaths
+                                        |
+                         death ----------+---------- no death
+                           |                         |
+                      print "died"             short pause
+                           |                         |
+                    stop simulation <---------------+
+```
 
-- chaque philosophe prend sa fourchette gauche
-- puis attend indéfiniment la droite
+### Detecting a death
 
-Personne ne peut continuer.
+[`is_dead`](srcs/monitor.c#L18) compares the current time with the beginning of
+the philosopher's last meal:
 
-### Stratégies anti-deadlock
+```text
+current time - last meal >= time_to_die
+```
 
-Plusieurs stratégies possibles (en choisir une et rester cohérent) :
+The `last_meal_time` value is updated when a philosopher **starts** eating, as
+required by the subject.
 
-1. **Ordre total des fourchettes**
-	- toujours prendre d'abord la fourchette avec le plus petit index, puis l'autre
-2. **Pair/impair**
-	- les pairs prennent droite puis gauche, les impairs font l'inverse
-3. **Décalage de départ**
-	- faire attendre un peu certains philosophes au début (réduit les conflits)
+When a death is detected, [`print_death`](srcs/utils/utils.c#L27) first locks
+`print_mutex`, sets `end_simulation` to `1`, and then prints the death. Because
+`print_status` checks the same state while holding the same output lock, no
+normal status can be printed after `died`.
 
-La stratégie 1 (ordre total) est souvent la plus robuste pour raisonner.
+### Stopping after the meal quota
 
----
+[`all_full`](srcs/monitor.c#L51) checks that each `meals_counter` has reached
+the requested quota. The simulation does not stop as soon as one philosopher
+reaches the quota: **all** philosophers must reach it.
 
-## 3.5 Starvation
+The counter is incremented after a complete meal finishes in
+[`eat`](srcs/actions.c#L33).
 
-La **starvation** (famine), c'est quand un philosophe n'arrive presque jamais à manger, même si le programme n'est pas bloqué.
+## Common Mistakes and Important Points
 
-Dans ce projet, on veut une simulation propre, stable, sans data races, et qui limite ce problème.
+### Forgetting to unlock a mutex
 
----
+A `return` placed between a `lock` and its matching `unlock` may leave the
+mutex locked forever. Other threads will then remain blocked.
 
-## 3.6 Temps en millisecondes
+For every error branch, ask:
 
-Le sujet se base sur le temps en ms.
+```text
+Which mutexes does this thread currently own?
+Must they be released before returning?
+```
 
-Points clés :
+### Printing after a death
 
-- stocker un `start_time`
-- calculer `timestamp = now - start_time`
-- vérifier régulièrement : `now - last_meal > time_to_die`
-- `usleep` travaille en microsecondes (1 ms = 1000 us)
+Reading `end_simulation`, releasing the mutex, and then printing without a
+shared protection mechanism gives the monitor enough time to announce a death
+between these operations.
 
-Astuce : une fonction utilitaire type `current_time_ms()` simplifie beaucoup le code.
+In this project, `print_status` keeps `print_mutex` locked while checking the
+state and printing. `print_death` uses the same mutex.
 
----
+### Confusing `pthread_join` with stopping threads
 
-## 4) Architecture recommandée
+`pthread_join` does not ask a thread to stop. It only waits for that thread to
+finish. `end_simulation` must first be updated so the routines can exit, and
+only then can the threads be joined.
 
-## 4.1 Structures utiles
+### Handling a partial `pthread_create` failure
 
-- `t_rules` / `t_table` : paramètres communs de la simulation (nombres, temps, drapeau d'arrêt, tableaux de mutex/fourchettes...)
-- `t_philo` : état d'un philosophe (`id`, `last_meal`, `meals_eaten`, pointeurs vers fourchettes, thread...)
+Creating the fourth thread may fail while the first three are already running.
+The program must therefore:
 
-> Comme les globals sont interdites, ces structures sont allouées et passées via pointeurs.
+1. count how many threads were successfully created;
+2. request the simulation to stop;
+3. wait only for those threads with `pthread_join`;
+4. print the error and then clean up.
 
-## 4.2 Responsabilités
+This logic is implemented in
+[`create_threads`](srcs/simulation.c#L34) and
+[`dinner_start`](srcs/simulation.c#L76).
 
-1. **Parsing/validation des arguments**
-2. **Initialisation** (structures + mutex + philosophes)
-3. **Lancement des threads philosophes**
-4. **Monitoring** (mort / condition de fin par quota)
-5. **Arrêt propre** (join + destroy mutex + free)
+### Using `usleep` directly for long actions
 
----
+A long `usleep` prevents a philosopher from quickly noticing that the
+simulation has stopped. [`safe_sleep`](srcs/utils/time.c#L18) therefore
+performs short pauses and regularly checks `end_simulation`.
 
-## 5) Déroulé logique d'une simulation
+### The single philosopher case
 
-1. Lire et valider les arguments
-2. Initialiser la table et les philosophes
-3. Noter `start_time`
-4. Créer les threads
-5. Chaque philosophe boucle :
-	- prendre 2 fourchettes (avec lock)
-	- log `has taken a fork` (x2)
-	- mettre à jour `last_meal`
-	- log `is eating`
-	- attendre `time_to_eat`
-	- relâcher 2 fourchettes (unlock)
-	- log `is sleeping` puis attendre `time_to_sleep`
-	- log `is thinking`
-6. Le monitoring arrête tout si :
-	- un philosophe meurt, ou
-	- tous ont atteint `number_of_times_each_philosopher_must_eat`
+With one philosopher, there is only one fork. The philosopher picks it up but
+can never obtain a second fork to eat. They therefore die after `time_to_die`.
+This behavior is handled in [`philo_routine`](srcs/routine.c#L47) and
+[`take_forks`](srcs/actions.c#L98).
 
----
+### Cleaning up after incomplete initialization
 
-## 6) Cas limites à traiter absolument
+An allocation or mutex initialization may fail in the middle of `data_init`.
+Initialization counters allow [`clean`](srcs/utils/utils.c#L61) to destroy
+only mutexes that were successfully initialized.
 
-1. **`number_of_philosophers = 1`**
-2. Valeurs invalides (<= 0, non numériques, overflow)
-3. Timingsau format exact
-- [ ] Logs sérialisés (pas de chevauchement)
-- [ ] Mort détectée et affichée rapidement
-- [ ] Pas de data races
-- [ ] Arrêt propre + destruction des mutex
-- [ ] Makefile avec `NAME`, `all`, `clean`, `fclean`, `re`
+### Running tests multiple times
 
----
+Thread-related problems are often intermittent: a program may work nine times
+and then fail on the tenth run, depending on the execution order chosen by the
+operating system. Important scenarios should therefore be repeated.
 
-## 8) Plan d'attaque concret
+## Instructions
 
-1. Écrire les fonctions de temps + affichage protégé par mutex
-2. Parsing robuste des arguments
-3. Initialisation complète des structures/mutex
-4. Routine philosophe minimale (sans optimisation)
-5. Monitoring de mort fiable
-6. Condition d'arrêt sur quota de repas
-7. Gestion des cas limites + nettoyage complet
-8. Tests intensifs de timings
+### Compilation
 
---- très petits (sensible au scheduler)
-4. Éviter d'afficher des actions après une mort
-5. Nettoyage même en cas d'erreur partielle d'initialisation
+```bash
+make
+```
 
----
+The Makefile also provides the following rules:
 
-## 7) Checklist de conformité
+```bash
+make clean
+make fclean
+make re
+```
 
-- [ ] Pas de variables globales
-- [ ] Un thread par philosophe
-- [ ] Un mutex par fourchette
-- [ ] Logs au format exact
-- [ ] Logs sérialisés (pas de chevauchement)
-- [ ] Mort détectée et affichée rapidement
-- [ ] Pas de data races
-- [ ] Arrêt propre + destruction des mutex
-- [ ] Makefile avec `NAME`, `all`, `clean`, `fclean`, `re`
+### Execution
 
----
+```bash
+./philo number_of_philosophers time_to_die time_to_eat time_to_sleep \
+[number_of_times_each_philosopher_must_eat]
+```
 
-## 8) Plan d'attaque concret
+All durations are expressed in milliseconds.
 
-1. Écrire les fonctions de temps + affichage protégé par mutex
-2. Parsing robuste des arguments
-3. Initialisation complète des structures/mutex
-4. Routine philosophe minimale (sans optimisation)
-5. Monitoring de mort fiable
-6. Condition d'arrêt sur quota de repas
-7. Gestion des cas limites + nettoyage complet
-8. Tests intensifs de timings
+## Arguments
 
----
+- `number_of_philosophers`: number of philosophers and forks.
+- `time_to_die`: maximum time without starting a meal before dying.
+- `time_to_eat`: amount of time a philosopher spends eating.
+- `time_to_sleep`: amount of time a philosopher spends sleeping.
+- `number_of_times_each_philosopher_must_eat`: optional meal quota.
+
+All arguments must be strictly positive integers.
+
+## Examples
+
+Simulation without a meal quota:
+
+```bash
+./philo 5 800 200 200
+```
+
+Simulation that stops after every philosopher has eaten at least three times:
+
+```bash
+./philo 5 800 200 200 3
+```
+
+Single philosopher case: the philosopher picks up their only fork, cannot eat,
+and dies after `time_to_die`.
+
+```bash
+./philo 1 200 100 100
+```
+
+Messages always follow one of the required formats:
+
+```text
+timestamp philosopher_id has taken a fork
+timestamp philosopher_id is eating
+timestamp philosopher_id is sleeping
+timestamp philosopher_id is thinking
+timestamp philosopher_id died
+```
+
+## Useful Tests
+
+Check for memory leaks:
+
+```bash
+valgrind --leak-check=full ./philo 5 800 200 200 3
+```
+
+Check for data races:
+
+```bash
+valgrind --tool=helgrind ./philo 5 800 200 200 3
+```
+
+Trigger a death and check that no message follows `died`:
+
+```bash
+./philo 4 310 200 100
+```
+
+Test a simulation with many threads:
+
+```bash
+./philo 200 800 200 200 2
+```
+
+## Resources
+
+- [POSIX Threads Programming](https://hpc-tutorials.llnl.gov/posix/)
+- [POSIX Threads in OS](https://www.geeksforgeeks.org/operating-systems/posix-threads-in-os/)
+- [pthreads documentation](https://man7.org/linux/man-pages/man7/pthreads.7.html)
+- [pthread_mutex_lock documentation](https://man7.org/linux/man-pages/man3/pthread_mutex_lock.3p.html)
+- [pthread_create documentation](https://man7.org/linux/man-pages/man3/pthread_create.3.html)
+- [The Dining Philosophers by Oceano](https://medium.com/@jalal92/the-dining-philosophers-7157cc05315)
+- [Helpful video](https://www.youtube.com/watch?v=mvZKu0DfFLQ)
+- Official Philosophers subject provided by 42 School.
+
+## Use of AI
+
+AI was used as a learning tool during development. It was mainly used to:
+
+- progressively explain threads, mutexes, deadlocks, and data races;
+- suggest test scenarios and analyze their results;
+- verify edge cases, memory leaks, and data races;
+- help organize comments and documentation, including translating this README
+  into English.
+
+The code was written by hand and studied step by step so that every decision
+remains understood and can be explained during the evaluation.

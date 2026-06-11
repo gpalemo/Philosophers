@@ -13,7 +13,7 @@
 #include "../include/philo.h"
 
 /**
- * @brief vérifie si le philo a dépassé son temps de survie
+ * @brief vérifie si le philo a atteint son temps avant de mourir
  */
 static int	is_dead(t_philo *philo)
 {
@@ -67,7 +67,7 @@ static int	all_full(t_table *table)
 }
 
 /**
- * @brief signale au threads que la simulation doit s'arrêter
+ * @brief signale aux threads que la simulation doit s'arrêter
  */
 int	stop_simulation(t_table *table)
 {

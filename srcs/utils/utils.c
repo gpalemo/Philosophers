@@ -13,7 +13,7 @@
 #include "../../include/philo.h"
 
 /**
- * @brief affiche un message d'erreur
+ * @brief affiche un message d'erreur puis retourne 1
  */
 int	print_error(const char *error)
 {
@@ -77,7 +77,7 @@ void	clean(t_table *table)
 }
 
 /**
- * @brief vérifie si la simulation doit s'arrêter
+ * @brief lit de façon protégée si la simulation doit s'arrêter
  */
 int	simulation_stopped(t_table *table)
 {

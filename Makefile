@@ -6,11 +6,11 @@
 #    By: cmauley <cmauley@student.42lausanne.ch>    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/04/21 21:16:01 by cmauley           #+#    #+#              #
-#    Updated: 2026/06/08 19:17:26 by cmauley          ###   ########.fr        #
+#    Updated: 2026/06/11 16:06:40 by cmauley          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-# Colors
+# Couleurs
 RESET			= "\033[0m"
 BLACK    		= "\033[30m"    # Black
 RED      		= "\033[31m"    # Red
@@ -21,7 +21,7 @@ MAGENTA  		= "\033[35m"    # Magenta
 CYAN     		= "\033[36m"    # Cyan
 WHITE    		= "\033[37m"    # White
 
-# Compiler
+# Compilation
 NAME			= philo
 CC				= cc
 CFLAGS			= -Wall -Wextra -Werror
@@ -49,7 +49,7 @@ UTILS_FILES		= utils.c \
 				  mutex.c \
 				  time.c
 
-# Objects
+# Objets
 OBJS_DIR		= objs/
 OBJ_FILES		= $(SRC_FILES:.c=.o)
 PARSING_OBJ		= $(PARSING_FILES:.c=.o)
@@ -65,6 +65,14 @@ $(OBJS_DIR) :
 	@$(MKDIR) $(OBJS_DIR)utils/
 
 $(NAME) : $(OBJS) Makefile
+	@printf "\033[1;35m"
+	@printf "██████╗ ██╗  ██╗██╗██╗      ██████╗ ███████╗ ██████╗ ██████╗ ██╗  ██╗███████╗██████╗ ███████╗\n"
+	@printf "██╔══██╗██║  ██║██║██║     ██╔═══██╗██╔════╝██╔═══██╗██╔══██╗██║  ██║██╔════╝██╔══██╗██╔════╝\n"
+	@printf "██████╔╝███████║██║██║     ██║   ██║███████╗██║   ██║██████╔╝███████║█████╗  ██████╔╝███████╗\n"
+	@printf "██╔═══╝ ██╔══██║██║██║     ██║   ██║╚════██║██║   ██║██╔═══╝ ██╔══██║██╔══╝  ██╔══██╗╚════██║\n"
+	@printf "██║     ██║  ██║██║███████╗╚██████╔╝███████║╚██████╔╝██║     ██║  ██║███████╗██║  ██║███████║\n"
+	@printf "╚═╝     ╚═╝  ╚═╝╚═╝╚══════╝ ╚═════╝ ╚══════╝ ╚═════╝ ╚═╝     ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝\n"
+	@printf "\033[1;36m                     ░▒▓ Threads • Mutexes ▓▒░\033[0m\n"
 	@echo $(GREEN) " - Compiling $(NAME)..." $(RESET)
 	@$(CC) $(CFLAGS) $(OBJS) $(LINKER) -o $(NAME)
 	@echo $(YELLOW) " - Compiling FINISHED" $(RESET)

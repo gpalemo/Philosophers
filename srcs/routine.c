@@ -36,7 +36,7 @@ int	print_status(t_philo *philo, char *status)
 }
 
 /**
- * @brief exécute le cycle manger, dormir et penser
+ * @brief exécute la routine du philo jusqu'à la fin de la simulation
  */
 void	*philo_routine(void *data)
 {

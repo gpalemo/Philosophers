@@ -28,7 +28,7 @@ int	drop_forks(t_philo *philo)
 }
 
 /**
- * @brief met à jour le dernier repas puis fait manger le philo
+ * @brief fait manger le philo et compte son repas terminé
  */
 int	eat(t_philo *philo)
 {
@@ -50,7 +50,7 @@ int	eat(t_philo *philo)
 }
 
 /**
- * @brief fait dormir puis penser le philo
+ * @brief fait dormir et penser le philo puis espace les tables impaires
  */
 int	sleep_and_think(t_philo *philo)
 {
@@ -83,7 +83,7 @@ static void	choose_forks(t_philo *philo, t_fork **first, t_fork **second)
 }
 
 /**
- * @brief verrouille et annonce la prise des deux fourchettes
+ * @brief verrouille et annonce la prise des fourchettes disponibles
  */
 int	take_forks(t_philo *philo)
 {

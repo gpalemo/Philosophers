@@ -29,7 +29,7 @@ static void	set_start_time(t_table *table)
 }
 
 /**
- * @brief crée un thread pour chaque philos
+ * @brief crée les threads et compte ceux créés avec succès
  */
 static int	create_threads(t_table *table, int *created)
 {
@@ -49,7 +49,7 @@ static int	create_threads(t_table *table, int *created)
 }
 
 /**
- * @brief attend la fin de tous les threads créé
+ * @brief attend la fin de tous les threads créés
  */
 static int	join_threads(t_table *table, int created)
 {
@@ -71,7 +71,7 @@ static int	join_threads(t_table *table, int created)
  * @brief démarre puis termine proprement la simulation
  *
  * initialise le temps, crée les threads, lance le monitor si la création
- * réussi, arrete les threads si erreur puis attend leur fin
+ * réussit, arrête les threads si nécessaire puis attend leur fin
  */
 int	dinner_start(t_table *table)
 {
