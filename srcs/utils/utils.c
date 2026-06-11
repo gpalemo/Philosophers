@@ -6,7 +6,7 @@
 /*   By: cmauley <cmauley@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/01 21:53:34 by cmauley           #+#    #+#             */
-/*   Updated: 2026/06/08 21:26:29 by cmauley          ###   ########.fr       */
+/*   Updated: 2026/06/11 03:21:50 by cmauley          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,27 @@ int	print_error(const char *error)
 {
 	printf(RED"%s\n"RST, error);
 	return (1);
+}
+
+/**
+ * @brief arrête la simulation et affiche la mort du philosophe
+ */
+int	print_death(t_philo *philo)
+{
+	long	time_spend;
+
+	if (safe_mutex_lock(&philo->table->print_mutex))
+		return (1);
+	if (safe_mutex_lock(&philo->table->data_mutex))
+		return (safe_mutex_unlock(&philo->table->print_mutex), 1);
+	philo->table->end_simulation = 1;
+	if (safe_mutex_unlock(&philo->table->data_mutex))
+		return (safe_mutex_unlock(&philo->table->print_mutex), 1);
+	time_spend = get_time() - philo->table->start_simulation;
+	printf("%ld %d died\n", time_spend, philo->id);
+	if (safe_mutex_unlock(&philo->table->print_mutex))
+		return (1);
+	return (0);
 }
 
 /**
@@ -56,12 +77,16 @@ void	clean(t_table *table)
 }
 
 /**
- * @brief retourne le temps actuel en ms
+ * @brief vérifie si la simulation doit s'arrêter
  */
-long	get_time(void)
+int	simulation_stopped(t_table *table)
 {
-	struct timeval	tv;
+	int	stopped;
 
-	gettimeofday(&tv, NULL);
-	return ((tv.tv_sec * 1000) + (tv.tv_usec / 1000));
+	if (safe_mutex_lock(&table->data_mutex))
+		return (1);
+	stopped = table->end_simulation;
+	if (safe_mutex_unlock(&table->data_mutex))
+		return (1);
+	return (stopped);
 }

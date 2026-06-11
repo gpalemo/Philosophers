@@ -6,21 +6,19 @@
 /*   By: cmauley <cmauley@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/21 21:16:36 by cmauley           #+#    #+#             */
-/*   Updated: 2026/06/09 21:48:39 by cmauley          ###   ########.fr       */
+/*   Updated: 2026/06/11 03:28:38 by cmauley          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef PHILO_H
 # define PHILO_H
 
-# include <time.h> // gettimeofday
-# include <sys/time.h> // struct timeval
-# include <pthread.h> // mutex : init, destroy, lock, unlock | threads : create, join, detach
-# include <string.h>
-# include <stdio.h> // printf
-# include <stdlib.h> // malloc, free
-# include <unistd.h> // write, usleep
-# include <limits.h> // INT MIN, INT MAX
+# include <sys/time.h>
+# include <pthread.h>
+# include <stdio.h>
+# include <stdlib.h>
+# include <unistd.h>
+# include <limits.h>
 
 /*
 ** ANSI Escape Sequences pour les textes en couleur
@@ -39,21 +37,20 @@
 # define C	"\033[1;36m"	/* Cyan gras */
 # define W	"\033[1;37m"	/* Blanc gras */
 
-
 typedef pthread_mutex_t	t_mtx;
 
 // c bon ca existe trdc
 typedef struct s_table	t_table;
 
 // FORK
-typedef struct	s_fork
+typedef struct s_fork
 {
 	t_mtx	fork;
 	int		fork_id;
 }					t_fork;
 
 // PHILO
-typedef struct	s_philo
+typedef struct s_philo
 {
 	int			id;
 	int			meals_counter;
@@ -84,32 +81,44 @@ struct	s_table
 	int		data_mutex_initialized;
 };
 
-// utils
-int		print_error(const char *error);
-void	*safe_malloc(size_t bytes);
-int		safe_mutex_init(t_mtx *mutex);
-int		safe_mutex_destroy(t_mtx *mutex);
-int		safe_mutex_lock(t_mtx *mutex);
-int		safe_mutex_unlock(t_mtx *mutex);
-long	get_time(void);
-void	clean(t_table *table);
-
 // parsing
-int	parse_input(t_table *table, char **av);
+int		parse_input(t_table *table, char **av);
 
-// init
+// initialisation
 int		data_init(t_table *table);
 
 // simulation
 int		dinner_start(t_table *table);
-int		print_status(t_philo *philo, char *status);
-void	*philo_routine(void *data);
 int		monitor(t_table *table);
+int		stop_simulation(t_table *table);
+
+// routine
+void	*philo_routine(void *data);
+int		print_status(t_philo *philo, char *status);
+int		print_death(t_philo *philo);
 
 // actions
 int		take_forks(t_philo *philo);
-void	drop_forks(t_philo *philo);
+int		drop_forks(t_philo *philo);
 int		eat(t_philo *philo);
 int		sleep_and_think(t_philo *philo);
+
+// temps et etat
+long	get_time(void);
+int		safe_sleep(long duration, t_table *table);
+int		simulation_stopped(t_table *table);
+
+// memoire et clean
+void	*safe_malloc(size_t bytes);
+void	clean(t_table *table);
+
+// mutex
+int		safe_mutex_init(t_mtx *mutex);
+int		safe_mutex_destroy(t_mtx *mutex);
+int		safe_mutex_lock(t_mtx *mutex);
+int		safe_mutex_unlock(t_mtx *mutex);
+
+// erreurs
+int		print_error(const char *error);
 
 #endif

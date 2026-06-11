@@ -6,7 +6,7 @@
 /*   By: cmauley <cmauley@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/01 15:28:52 by cmauley           #+#    #+#             */
-/*   Updated: 2026/06/09 21:51:03 by cmauley          ###   ########.fr       */
+/*   Updated: 2026/06/11 03:36:33 by cmauley          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,5 +88,3 @@ int	data_init(t_table *table)
 	init_philos(table);
 	return (0);
 }
-
-

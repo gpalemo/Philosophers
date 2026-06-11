@@ -29,7 +29,7 @@ static int	is_space(char c)
 }
 
 /**
- * @brief verifie le début d'un argument num
+ * @brief valide le début d'un argument numérique positif
  */
 static const char	*valid_input(const char *str)
 {
@@ -49,7 +49,7 @@ static const char	*valid_input(const char *str)
 }
 
 /**
- * @brief convertit un argument valide en nombre entier
+ * @brief convertit un argument valide sans dépasser INT_MAX
  */
 static int	parse_number(const char *str, int *value)
 {

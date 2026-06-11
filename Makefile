@@ -46,7 +46,8 @@ SRC_FILES		= main.c \
 				  monitor.c
 PARSING_FILES		= parse.c
 UTILS_FILES		= utils.c \
-				  mutex.c
+				  mutex.c \
+				  time.c
 
 # Objects
 OBJS_DIR		= objs/

@@ -6,18 +6,30 @@
 /*   By: cmauley <cmauley@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 21:30:00 by cmauley           #+#    #+#             */
-/*   Updated: 2026/06/09 22:01:24 by cmauley          ###   ########.fr       */
+/*   Updated: 2026/06/11 02:57:29 by cmauley          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/philo.h"
 
-void	drop_forks(t_philo *philo)
+/**
+ * @brief libère les deux fourchettes du philosophe
+ */
+int	drop_forks(t_philo *philo)
 {
-	safe_mutex_unlock(&philo->left_fork->fork);
-	safe_mutex_unlock(&philo->right_fork->fork);
+	int	status;
+
+	status = 0;
+	if (safe_mutex_unlock(&philo->left_fork->fork))
+		status = 1;
+	if (safe_mutex_unlock(&philo->right_fork->fork))
+		status = 1;
+	return (status);
 }
 
+/**
+ * @brief met à jour le dernier repas puis fait manger le philo
+ */
 int	eat(t_philo *philo)
 {
 	if (safe_mutex_lock(&philo->table->data_mutex))
@@ -27,7 +39,8 @@ int	eat(t_philo *philo)
 		return (1);
 	if (print_status(philo, "is eating"))
 		return (1);
-	usleep(philo->table->time_to_eat * 1000);
+	if (safe_sleep(philo->table->time_to_eat, philo->table))
+		return (1);
 	if (safe_mutex_lock(&philo->table->data_mutex))
 		return (1);
 	philo->meals_counter++;
@@ -36,16 +49,25 @@ int	eat(t_philo *philo)
 	return (0);
 }
 
+/**
+ * @brief fait dormir puis penser le philo
+ */
 int	sleep_and_think(t_philo *philo)
 {
 	if (print_status(philo, "is sleeping"))
 		return (1);
-	usleep(philo->table->time_to_sleep * 1000);
+	if (safe_sleep(philo->table->time_to_sleep, philo->table))
+		return (1);
 	if (print_status(philo, "is thinking"))
 		return (1);
+	if (philo->table->philo_nbr % 2 == 1)
+		return (safe_sleep(philo->table->time_to_eat / 2, philo->table));
 	return (0);
 }
 
+/**
+ * @brief choisit l'ordre de prise des fourchettes selon l'id
+ */
 static void	choose_forks(t_philo *philo, t_fork **first, t_fork **second)
 {
 	if (philo->id % 2 == 0)
@@ -61,7 +83,7 @@ static void	choose_forks(t_philo *philo, t_fork **first, t_fork **second)
 }
 
 /**
- * @brief fait prendre les fourchettes au philo
+ * @brief verrouille et annonce la prise des deux fourchettes
  */
 int	take_forks(t_philo *philo)
 {
@@ -74,10 +96,7 @@ int	take_forks(t_philo *philo)
 		return (1);
 	status = print_status(philo, "has taken a fork");
 	if (philo->table->philo_nbr == 1)
-	{
-		safe_mutex_unlock(&first->fork);
-		return (status);
-	}
+		return (safe_mutex_unlock(&first->fork) || status);
 	if (status)
 		return (safe_mutex_unlock(&first->fork), 1);
 	if (safe_mutex_lock(&second->fork))
